@@ -10,7 +10,7 @@ git pull
 
 
 cd into 
-'''cd linux-desktop/wm'''
+cd linux-desktop/wm
 
 
 
