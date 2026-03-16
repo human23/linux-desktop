@@ -6,6 +6,6 @@ set(CMAKE_C_STANDARD 11)
 
 find_package(X11 REQUIRED)
 
-add_executable(linux-desktop windows.c)
+add_executable(linux-desktop wm/windows.c)
 
 target_link_libraries(linux-desktop ${X11_LIBRARIES})
