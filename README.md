@@ -29,7 +29,7 @@ mv windows windows.c
 
 
 
-## compile program
+## manual compile program(skip)
 
 gcc windows.c -o windows -lX11 -lGL -lGLU
 
