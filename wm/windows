@@ -37,13 +37,31 @@ int main() {
     XMapWindow(dpy, bg);
     XLowerWindow(dpy, bg);  // keep it behind other windows
 
+    // Create taskbar at bottom
+    Window taskbar = XCreateSimpleWindow(
+        dpy,
+        root,
+        0, screen_height - 40,
+        screen_width,
+        40,
+        0,
+        0,
+        0x2d2d44  // slightly lighter blue
+    );
+    XMapWindow(dpy, taskbar);
+    XRaiseWindow(dpy, taskbar);
+
     XSelectInput(dpy, root,
         SubstructureRedirectMask |
         SubstructureNotifyMask);
 
-    // launch terminal
+    // launch terminal in background
     if (fork() == 0) {
+        // Try different terminals
+        execl("/usr/bin/alacritty", "alacritty", NULL);
+        execl("/usr/bin/gnome-terminal", "gnome-terminal", NULL);
         execl("/usr/bin/xterm", "xterm", NULL);
+        perror("Failed to launch terminal");
         exit(1);
     }
 
