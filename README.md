@@ -48,7 +48,7 @@ rm -rf linux-desktop
 
 
 
-cmake compile
+## cmake compile
 
 sudo apt install cmake build-essential
 
