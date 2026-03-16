@@ -20,6 +20,23 @@ int main() {
 
     root = DefaultRootWindow(dpy);
 
+    // Create desktop background
+    int screen_width = DisplayWidth(dpy, DefaultScreen(dpy));
+    int screen_height = DisplayHeight(dpy, DefaultScreen(dpy));
+    
+    Window bg = XCreateSimpleWindow(
+        dpy,
+        root,
+        0, 0,
+        screen_width,
+        screen_height,
+        0,
+        0,
+        0x1a1a2e  // dark blue background
+    );
+    XMapWindow(dpy, bg);
+    XLowerWindow(dpy, bg);  // keep it behind other windows
+
     XSelectInput(dpy, root,
         SubstructureRedirectMask |
         SubstructureNotifyMask);
