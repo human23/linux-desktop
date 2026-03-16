@@ -5,44 +5,6 @@
 #include <stdlib.h>
 
 int main() {
-    Display *dpy = XOpenDisplay(NULL);
-    if (!dpy) { fprintf(stderr, "Cannot open display\n"); return 1; }
-    int screen = DefaultScreen(dpy);
-    Window root = RootWindow(dpy, screen);
 
-    XSetWindowAttributes swa;
-    swa.event_mask = ExposureMask | KeyPressMask;
-    Window win = XCreateWindow(dpy, root, 100, 100, 800, 600, 0,
-                               CopyFromParent, InputOutput, CopyFromParent,
-                               CWEventMask, &swa);
-    XMapWindow(dpy, win);
-    XStoreName(dpy, win, "My Desktop Window");
-
-    XVisualInfo *vi = glXChooseVisual(dpy, screen, NULL);
-    if (!vi) {
-        fprintf(stderr, "No appropriate visual found\n");
-        XDestroyWindow(dpy, win);
-        XCloseDisplay(dpy);
-        return 1;
-    }
-    GLXContext glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
-    glXMakeCurrent(dpy, win, glc);
-
-    XEvent xev;
-    while (1) {
-        while (XPending(dpy)) {
-            XNextEvent(dpy, &xev);
-            if (xev.type == KeyPress) {
-                glXMakeCurrent(dpy, None, NULL);
-                glXDestroyContext(dpy, glc);
-                XDestroyWindow(dpy, win);
-                XCloseDisplay(dpy);
-                return 0;
-            }
-        }
-
-        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glXSwapBuffers(dpy, win);
-    }
+    printf("hello there does this print?\n");
 }
