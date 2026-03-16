@@ -34,6 +34,11 @@ mv windows windows.c
 gcc windows.c -o windows -lX11 -lGL -lGLU
 
 
+## run program
+./windows
+
+
+
 ## remove program
 
 rm -rf linux-desktop
