@@ -1,24 +1,24 @@
 # linux-desktop
 
-#clone github onto system
+## clone github onto system
 
 git clone https://github.com/human23/linux-desktop.git
 
-#or
+## or
 
 git pull
 
 
-#cd into 
+## cd into 
 cd linux-desktop/wm
 
 
 
-#make sure windows.c is called windows.c and not windows
+## make sure windows.c is called windows.c and not windows
 
 mv windows windows.c
 
 
-#compile program
+## compile program
 
 gcc windows.c -o windows -lX11 -lGL -lGLU
