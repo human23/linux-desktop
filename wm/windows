@@ -25,7 +25,14 @@ int main() {
     XStoreName(dpy, win, "My Minimal Desktop");
 
     // OpenGL context
-    GLXContext glc = glXCreateContext(dpy, DefaultVisual(dpy, screen), NULL, GL_TRUE);
+    XVisualInfo *vi = glXChooseVisual(dpy, screen, NULL);
+    if (!vi) {
+        fprintf(stderr, "No appropriate visual found\n");
+        XDestroyWindow(dpy, win);
+        XCloseDisplay(dpy);
+        return 1;
+    }
+    GLXContext glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
     glXMakeCurrent(dpy, win, glc);
 
     // Launch terminal automatically
