@@ -37,16 +37,16 @@ int main() {
     XMapWindow(dpy, bg);
     XLowerWindow(dpy, bg);  // keep it behind other windows
 
-    // Create taskbar at bottom
+    // Create taskbar at top
     Window taskbar = XCreateSimpleWindow(
         dpy,
         root,
-        0, screen_height - 40,
+        0, 0,
         screen_width,
-        40,
-        0,
-        0,
-        0x2d2d44  // slightly lighter blue
+        50,
+        2,
+        0xffffff,  // white border
+        0x2d2d44  // dark blue background
     );
     XMapWindow(dpy, taskbar);
     XRaiseWindow(dpy, taskbar);
