@@ -1,0 +1,41 @@
+#include <X11/Xlib.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    Display *dpy = XOpenDisplay(NULL);
+    if (!dpy) { fprintf(stderr, "Cannot open display\n"); return 1; }
+    int screen = DefaultScreen(dpy);
+    Window root = RootWindow(dpy, screen);
+
+    XSetWindowAttributes swa;
+    swa.event_mask = ExposureMask | KeyPressMask;
+    Window win = XCreateWindow(dpy, root, 100, 100, 800, 600, 0,
+                               CopyFromParent, InputOutput, CopyFromParent,
+                               CWEventMask, &swa);
+    XMapWindow(dpy, win);
+    XStoreName(dpy, win, "My Desktop Window");
+
+    GLXContext glc = glXCreateContext(dpy, DefaultVisual(dpy, screen), NULL, GL_TRUE);
+    glXMakeCurrent(dpy, win, glc);
+
+    XEvent xev;
+    while (1) {
+        while (XPending(dpy)) {
+            XNextEvent(dpy, &xev);
+            if (xev.type == KeyPress) {
+                glXMakeCurrent(dpy, None, NULL);
+                glXDestroyContext(dpy, glc);
+                XDestroyWindow(dpy, win);
+                XCloseDisplay(dpy);
+                return 0;
+            }
+        }
+
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glXSwapBuffers(dpy, win);
+    }
+}
