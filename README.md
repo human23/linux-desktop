@@ -1,6 +1,7 @@
 # linux-desktop
 
 clone github onto system
+
 git clone https://github.com/human23/linux-desktop.git
 
 or
@@ -9,7 +10,7 @@ git pull
 
 
 cd into 
-cd linux-desktop/wm
+'''cd linux-desktop/wm'''
 
 
 
