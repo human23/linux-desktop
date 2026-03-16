@@ -1,83 +1,104 @@
 #include <X11/Xlib.h>
-#include <GL/gl.h>
-#include <GL/glx.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
+Display *dpy;
+Window root;
+
+int dragging = 0;
+int drag_start_x, drag_start_y;
+Window drag_win;
+
 int main() {
-    Display *dpy = XOpenDisplay(NULL);
+
+    dpy = XOpenDisplay(NULL);
     if (!dpy) {
-        fprintf(stderr, "Cannot open display\n");
-        return 1;
-    }
-
-    int screen = DefaultScreen(dpy);
-    Window root = RootWindow(dpy, screen);
-
-    // OpenGL visual attributes
-    int attribs[] = {
-        GLX_RGBA,
-        GLX_DEPTH_SIZE, 24,
-        GLX_DOUBLEBUFFER,
-        None
-    };
-
-    XVisualInfo *vi = glXChooseVisual(dpy, screen, attribs);
-    if (!vi) {
-        fprintf(stderr, "No appropriate visual found\n");
-        XCloseDisplay(dpy);
-        return 1;
-    }
-
-    // Create colormap
-    Colormap cmap = XCreateColormap(dpy, root, vi->visual, AllocNone);
-
-    // Set window attributes
-    XSetWindowAttributes swa;
-    swa.colormap = cmap;
-    swa.event_mask = ExposureMask | KeyPressMask;
-
-    Window win = XCreateWindow(dpy, root,
-                               0, 0, 1024, 768, 0,
-                               vi->depth, InputOutput, vi->visual,
-                               CWColormap | CWEventMask, &swa);
-    XMapWindow(dpy, win);
-    XStoreName(dpy, win, "My Minimal Desktop");
-
-    // Create OpenGL context
-    GLXContext glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
-    if (!glc) {
-        fprintf(stderr, "Failed to create GLX context\n");
-        XDestroyWindow(dpy, win);
-        XCloseDisplay(dpy);
-        return 1;
-    }
-    glXMakeCurrent(dpy, win, glc);
-
-    // Launch terminal
-    if (fork() == 0) {
-        execl("/usr/bin/xterm", "xterm", NULL);
-        perror("Failed to launch terminal");
+        printf("cannot open display\n");
         exit(1);
     }
 
-    // Main loop
-    XEvent xev;
+    root = DefaultRootWindow(dpy);
+
+    XSelectInput(dpy, root,
+        SubstructureRedirectMask |
+        SubstructureNotifyMask);
+
+    // launch terminal
+    if (fork() == 0) {
+        execl("/usr/bin/xterm", "xterm", NULL);
+        exit(1);
+    }
+
+    XEvent ev;
+
     while (1) {
-        while (XPending(dpy)) {
-            XNextEvent(dpy, &xev);
-            if (xev.type == KeyPress) {
-                glXMakeCurrent(dpy, None, NULL);
-                glXDestroyContext(dpy, glc);
-                XDestroyWindow(dpy, win);
-                XCloseDisplay(dpy);
-                return 0;
-            }
+
+        XNextEvent(dpy, &ev);
+
+        if (ev.type == MapRequest) {
+
+            Window w = ev.xmaprequest.window;
+
+            XWindowAttributes attr;
+            XGetWindowAttributes(dpy, w, &attr);
+
+            int title_height = 24;
+
+            Window frame = XCreateSimpleWindow(
+                dpy,
+                root,
+                attr.x,
+                attr.y,
+                attr.width,
+                attr.height + title_height,
+                1,
+                0,
+                0x222222
+            );
+
+            XSelectInput(dpy, frame,
+                ButtonPressMask |
+                ButtonReleaseMask |
+                PointerMotionMask);
+
+            XAddToSaveSet(dpy, w);
+            XReparentWindow(dpy, w, frame, 0, title_height);
+
+            XMapWindow(dpy, w);
+            XMapWindow(dpy, frame);
         }
 
-        glClearColor(0.0f, 0.0f, 0.8f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glXSwapBuffers(dpy, win);
+        if (ev.type == ButtonPress) {
+
+            dragging = 1;
+            drag_win = ev.xbutton.window;
+
+            drag_start_x = ev.xbutton.x_root;
+            drag_start_y = ev.xbutton.y_root;
+        }
+
+        if (ev.type == MotionNotify && dragging) {
+
+            int dx = ev.xmotion.x_root - drag_start_x;
+            int dy = ev.xmotion.y_root - drag_start_y;
+
+            XWindowAttributes attr;
+            XGetWindowAttributes(dpy, drag_win, &attr);
+
+            XMoveWindow(
+                dpy,
+                drag_win,
+                attr.x + dx,
+                attr.y + dy
+            );
+
+            drag_start_x = ev.xmotion.x_root;
+            drag_start_y = ev.xmotion.y_root;
+        }
+
+        if (ev.type == ButtonRelease) {
+            dragging = 0;
+        }
     }
 }
