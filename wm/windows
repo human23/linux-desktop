@@ -3,8 +3,56 @@
 #include <GL/glx.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>  // for fork, execl
 
 int main() {
+    Display *dpy = XOpenDisplay(NULL);
+    if (!dpy) {
+        fprintf(stderr, "Cannot open display\n");
+        return 1;
+    }
 
-    printf("hello there does this print?\n");
+    int screen = DefaultScreen(dpy);
+    Window root = RootWindow(dpy, screen);
+
+    // Create root window (acts like desktop background)
+    XSetWindowAttributes swa;
+    swa.event_mask = ExposureMask | KeyPressMask;
+    Window win = XCreateWindow(dpy, root, 0, 0, 1024, 768, 0,
+                               CopyFromParent, InputOutput, CopyFromParent,
+                               CWEventMask, &swa);
+    XMapWindow(dpy, win);
+    XStoreName(dpy, win, "My Minimal Desktop");
+
+    // OpenGL context
+    GLXContext glc = glXCreateContext(dpy, DefaultVisual(dpy, screen), NULL, GL_TRUE);
+    glXMakeCurrent(dpy, win, glc);
+
+    // Launch terminal automatically
+    if (fork() == 0) {
+        execl("/usr/bin/xterm", "xterm", NULL);  // you can replace xterm with gnome-terminal or alacritty
+        perror("Failed to launch terminal");
+        exit(1);
+    }
+
+    // Main loop
+    XEvent xev;
+    while (1) {
+        while (XPending(dpy)) {
+            XNextEvent(dpy, &xev);
+            if (xev.type == KeyPress) {
+                glXMakeCurrent(dpy, None, NULL);
+                glXDestroyContext(dpy, glc);
+                XDestroyWindow(dpy, win);
+                XCloseDisplay(dpy);
+                return 0;
+            }
+        }
+
+        // Blue background
+        glClearColor(0.0f, 0.0f, 0.8f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glXSwapBuffers(dpy, win);
+    }
 }
