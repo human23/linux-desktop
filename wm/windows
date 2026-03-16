@@ -5,6 +5,7 @@
 
 Display *dpy;
 Window root;
+Window file_mgr_btn;
 
 int dragging = 0;
 int drag_start_x, drag_start_y;
@@ -51,6 +52,19 @@ int main() {
     XMapWindow(dpy, taskbar);
     XRaiseWindow(dpy, taskbar);
 
+    // Create file manager button in taskbar
+    file_mgr_btn = XCreateSimpleWindow(
+        dpy,
+        taskbar,
+        10, 8,
+        34, 34,
+        2,
+        0x666666,  // gray border
+        0x444444   // dark gray background (looks like a cube)
+    );
+    XMapWindow(dpy, file_mgr_btn);
+    XSelectInput(dpy, file_mgr_btn, ButtonPressMask);
+
     XSelectInput(dpy, root,
         SubstructureRedirectMask |
         SubstructureNotifyMask);
@@ -78,7 +92,7 @@ int main() {
             XWindowAttributes attr;
             XGetWindowAttributes(dpy, w, &attr);
 
-            int title_height = 24;
+            int title_height = 50;  // bigger for easier dragging
 
             Window frame = XCreateSimpleWindow(
                 dpy,
@@ -106,11 +120,21 @@ int main() {
 
         if (ev.type == ButtonPress) {
 
-            dragging = 1;
-            drag_win = ev.xbutton.window;
+            // Check if file manager button was clicked
+            if (ev.xbutton.window == file_mgr_btn) {
+                if (fork() == 0) {
+                    execl("/usr/bin/dolphin", "dolphin", NULL);
+                    execl("/usr/bin/nautilus", "nautilus", NULL);
+                    execl("/usr/bin/thunar", "thunar", NULL);
+                    exit(1);
+                }
+            } else {
+                dragging = 1;
+                drag_win = ev.xbutton.window;
 
-            drag_start_x = ev.xbutton.x_root;
-            drag_start_y = ev.xbutton.y_root;
+                drag_start_x = ev.xbutton.x_root;
+                drag_start_y = ev.xbutton.y_root;
+            }
         }
 
         if (ev.type == MotionNotify && dragging) {
