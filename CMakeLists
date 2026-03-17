@@ -1,11 +1,12 @@
-cmake_minimum_required(VERSION 3.10)
+include build/wm.mk
 
-project(linux-desktop)
+_init :
+	mkdir -p build/out/
 
-set(CMAKE_C_STANDARD 11)
+build : _init wm_build
 
-find_package(X11 REQUIRED)
+install : build
+	sudo ./install.sh
 
-add_executable(linux-desktop wm/windows.c)
-
-target_link_libraries(linux-desktop ${X11_LIBRARIES})
+test : build
+	Xephyr -ac -screen 1280x720 -br -reset -terminate 2> /dev/null :100 &
