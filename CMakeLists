@@ -1,12 +1,24 @@
-include build/wm.mk
+CC := gcc
+CFLAGS := -Wall -Wextra -O2
+LDFLAGS := -lX11
 
-_init :
-	mkdir -p build/out/
+SRC_DIR := src
+OUT_DIR := build/out
+WM := entropywm
 
-build : _init wm_build
+SRCS := $(wildcard $(SRC_DIR)/*.c)
+OBJS := $(patsubst $(SRC_DIR)/%.c, $(OUT_DIR)/%.o, $(SRCS))
 
-install : build
-	sudo ./install.sh
+wm_build: $(OUT_DIR)/$(WM)
 
-test : build
-	Xephyr -ac -screen 1280x720 -br -reset -terminate 2> /dev/null :100 &
+$(OUT_DIR)/$(WM): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+$(OUT_DIR)/%.o: $(SRC_DIR)/%.c | $(OUT_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OUT_DIR):
+	mkdir -p $(OUT_DIR)
+
+clean_wm:
+	rm -f $(OBJS) $(OUT_DIR)/$(WM)
