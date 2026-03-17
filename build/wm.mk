@@ -1,18 +1,30 @@
-include build/wm.mk
+# This file is part of "mira"
+# Under the MIT License
+# Copyright (c) 2022 Antonin Hérault
 
-.PHONY: _init build install test clean
+# Build file for the wm
 
-_init:
+include build/config.mk
+ 
+CC_FLAGS = $(CC_DEBUG_FLAGS) -I include/wm/ -I include/
+
+OUT_DIR = build/out/wm
+
+SRC = $(shell find src/wm -name '*.c')
+OBJ = $(patsubst src/wm/%.c, $(OUT_DIR)/%.o,$(SRC)) $(OUT_DIR)/x11.o
+
+BIN = build/out/mirawm
+
+_wm_init : 
 	mkdir -p $(OUT_DIR)
 
-build: _init wm_build
+wm_build : _wm_init $(BIN)
 
-install: build
-	sudo ./install.sh
+$(BIN) : $(OBJ)
+	$(CC) $(CC_DEPS) $(CC_FLAGS) -o $@ $^ $(DEPS)
 
-test: build
-	Xephyr -ac -screen 1280x720 -br -reset :100 &
-	sleep 1
-	DISPLAY=:100 $(OUT_DIR)/$(WM)
+$(OUT_DIR)/%.o : src/wm/%.c
+	$(CC) $(CC_DEPS) $(CC_FLAGS) -c -o $@ $^
 
-clean: clean_wm
+$(OUT_DIR)/x11.o : src/x11.c
+	$(CC) $(CC_DEPS) $(CC_FLAGS) -c -o $@ $^

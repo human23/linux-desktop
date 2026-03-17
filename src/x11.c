@@ -1,6 +1,10 @@
+// This file is part of "mira"
+// Under the MIT License
+// Copyright (c) 2022 Antonin Hérault
+
 #include "x11.h"
 
-//https://github.com/jichu4n/basic_wm/blob/master/util.cpp#L241
+// Thanks https://github.com/jichu4n/basic_wm/blob/master/util.cpp#L241
 static const char* const X_REQUEST_CODE_NAMES[] = {
     "",
     "CreateWindow",

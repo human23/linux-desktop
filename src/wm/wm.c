@@ -1,3 +1,7 @@
+// This file is part of "mira"
+// Under the MIT License
+// Copyright (c) 2022 Antonin Hérault
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
